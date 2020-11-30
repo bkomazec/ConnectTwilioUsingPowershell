@@ -1,17 +1,21 @@
 
 
+# function SetGlobalVariables {
+#     $global:withdraw = $false
+    
+# }
 
-
-
+$global:withdraw = $false
 
 #region Public functions
 
 #Choose one opti0n
 function ChooseOption{
 
-    [int]$option = GetOption "Choose option: 1. Send message, 2. Edit message, 3. Read messages [1/2/3]" 1 3
+    [int]$option = GetOption "Choose option: 1. Send message, 2. Edit message, 3. Get all messages, 4. Delete message, 5. Exit" 1 5
 
     if(CheckCredentials){
+        
         if ($option -eq 1) {
             $sendingSuccessful = $false
             while (-not $sendingSuccessful) {            
@@ -19,7 +23,12 @@ function ChooseOption{
                     SendMessage
                     $sendingSuccessful = $true
                 }
-                catch {
+                catch {    
+                    if ($withdraw) {
+                        $withdraw = $false
+                        ChooseOption
+                    }
+                    
                     Write-Host "Error sending sms. Please check you credentials." -ForegroundColor Red
                     ClearCredentials
                     CheckCredentials
@@ -32,7 +41,19 @@ function ChooseOption{
         }
     
         elseif ($option -eq 3) {
-            ReadMessages
+            GetMessages
+        }
+
+        elseif ($option -eq 4){
+            $messageId = Read-Host "Enter the message iD (SM**********************)"
+
+            DeleteMessage "https://api.twilio.com/2010-04-01/Accounts/$env:TWILIO_ACCOUNT_SID/Messages/$messageId.json"
+        }
+
+        elseif ($option -eq 5){
+            Clear-History
+            Remove-Variable * -ErrorAction SilentlyContinue
+            Exit
         }
     
         ChooseOption  
@@ -77,7 +98,7 @@ function SendMessage () {
     ConvertFrom-Json | Select sid, body
 }
 
-function ReadMessages {
+function GetMessages {
     $sid = $env:TWILIO_ACCOUNT_SID
     $token = $env:TWILIO_AUTH_TOKEN
     $url = "https://api.twilio.com/2010-04-01/Accounts/$sid/Messages.json"    
@@ -86,6 +107,22 @@ function ReadMessages {
     $credential = New-Object System.Management.Automation.PSCredential($sid, $p)
     $messages = Invoke-WebRequest $url -Method Get -Credential $credential -UseBasicParsing |  ConvertFrom-Json 
     $messages
+}
+
+function DeleteMessage ($url) {
+    $sid = $env:TWILIO_ACCOUNT_SID
+    $token = $env:TWILIO_AUTH_TOKEN
+    $p = $token | ConvertTo-SecureString -asPlainText    -Force
+    $credential = New-Object System.Management.Automation.PSCredential($sid, $p)
+    try {
+        Invoke-WebRequest $url -Method Delete -Credential $credential -UseBasicParsing
+        Write-Host "Message deleted successfully" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "Error deleting message" -ForegroundColor Red
+    }
+    
+
 }
 
 #endregion Public functions
@@ -173,7 +210,7 @@ function CheckCredentials {
         'accountSID': 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxx' `n
         'authToken': 'xxxxxxxxxxxxxxxxxxxxxxxxxxx' `n
         'twilioNumber': '+xxxxxxxxxxxx' `n
-        'userNumber': '+xxxxxxxxxxxx'" 1 3
+        'userNumber': '+xxxxxxxxxxxx' `n" 1 3
 
         [String]$account_sid = ""
         [String]$auth_token = ""
@@ -216,6 +253,7 @@ function CheckCredentials {
         }  
 
         else {
+            $global:withdraw = $true
             return $false
         }
 
