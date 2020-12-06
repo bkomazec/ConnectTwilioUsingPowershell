@@ -1,4 +1,3 @@
-
 class CredentialManager {
 
     hidden[string]$account_sid = ""
@@ -9,17 +8,6 @@ class CredentialManager {
     [bool]$credentials_set = $false
 
     CredentialManager(){}
-
-    [CredentialManager] ReturnInstance(){
-        return [CredentialManager]::new()
-    }
-
-    [void] ClearCredentials()  {    
-        $this.account_sid = ""
-        $this.auth_token = ""
-        $this.twilio_number = ""
-        $this.user_number = ""
-    }
 
     [bool] CheckCredentials() {
 
@@ -80,6 +68,14 @@ class CredentialManager {
         return $true
     }
 
+    [void] ClearCredentials()  {    
+        $this.account_sid = ""
+        $this.auth_token = ""
+        $this.twilio_number = ""
+        $this.user_number = ""
+        $this.credentials_set = $false
+    }
+
     [PSCustomObject] GetMessages() {
         $sid=$this.account_sid
         $url = "https://api.twilio.com/2010-04-01/Accounts/$sid/Messages.json"
@@ -90,23 +86,11 @@ class CredentialManager {
     }
 
     #Sending data to Twilio and sending SMS
-    [void] SendMessage () {
+    [void] SendMessage ( $body) {
 
         # Pull in Twilio account info, previously set as environment variables
         $sid=$this.account_sid
         $token = $this.auth_token
-        [string]$body = ""
-        [bool]$textIsValid = $false
-
-        while (-not $textIsValid) {
-            try {
-                $body = Read-Host "Enter the message text"
-                $textIsValid = $true
-            }
-            catch {
-                $textIsValid = $false
-            }
-        }
 
         # Twilio API endpoint and POST params
         $url = "https://api.twilio.com/2010-04-01/Accounts/$sid/Messages.json"
@@ -166,7 +150,7 @@ class CredentialManager {
         return $option
     }
 
-    [string] CheckPhoneNumber([string]$question) {
+    hidden[string] CheckPhoneNumber([string]$question) {
         
         $phoneRegex = "^\+[0-9]"
         [bool]$NumberValid = $false
