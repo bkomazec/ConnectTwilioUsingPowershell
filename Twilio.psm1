@@ -1,19 +1,20 @@
-using module .\CredentialManager.psm1
+using module .\CredentialProcessor.psm1
 
 
 class Twilio {
+
+    hidden[CredentialProcessor]$credentialProcessor = $null
     
     Twilio(){
-        $global:credentialManager = [CredentialManager]::new()
+        $this.credentialProcessor = [CredentialProcessor]::new()
     }
 
     [void] ChooseOption(){
-
-        while (-not $global:credentialManager.credentials_set) {
-            $global:credentialManager.CheckCredentials()
+        while (-not $this.credentialProcessor.credentials_set) {
+            $this.credentialProcessor.CheckCredentials()
         }
     
-        [int]$option = $global:credentialManager.GetOption("Choose option: 1. Send message, 2. Get all messages, 3. Delete message, 4. Set new credintials, 5. Exit",1,5) 
+        [int]$option = $this.credentialProcessor.GetOption("Choose option: 1. Send message, 2. Get all messages, 3. Delete message, 4. Set new credintials, 5. Exit",1,5) 
        
         if ($option -eq 1) {
             $sendingSuccessful = $false
@@ -33,32 +34,37 @@ class Twilio {
                         }
                     }
 
-                    $global:credentialManager.SendMessage($body);
+                    $this.credentialProcessor.SendMessage($body);
                     $sendingSuccessful = $true
                     Write-Host "Message successfully sent!" -ForegroundColor Green
                 }
                 catch {
-                    if ($global:credentialManager.withdraw) {
-                        $global:credentialManager.withdraw = $false
-                        $this.ChooseOption()
-                    }
+                    # if ($this.credentialProcessor.withdraw) {
+                    #     $this.credentialProcessor.withdraw = $false
+                    #     $this.ChooseOption()
+                    # }
 
                     Write-Host "Error sending sms. Please check you credentials." -ForegroundColor Red
-                    $global:credentialManager.ClearCredentials()
-                    $global:credentialManager.CheckCredentials
+                    $this.credentialProcessor.ClearCredentials()
+                    $this.credentialProcessor.CheckCredentials()
                 }
             }
         }
         
         elseif ($option -eq 2) {                
-            $messages = $global:credentialManager.GetMessages() 
-            Write-Host $messages 
-            # GetMessages
+            $messages = $this.credentialProcessor.GetMessages() 
+            if ($null -eq $messages) {
+                Write-Host "Error getting messages"
+            }
+            else{
+                Write-Host $messages 
+            }
+            
         }
 
         elseif ($option -eq 3){
             $messageId = Read-Host "Enter the message iD (SM**********************)"
-            if ($global:credentialManager.DeleteMessage($messageId)) {
+            if ($this.credentialProcessor.DeleteMessage($messageId)) {
                 Write-Host "Message successfully deleted!" -ForegroundColor Green
             }
             else{
@@ -67,7 +73,7 @@ class Twilio {
         }
 
         elseif ($option -eq 4){
-            $global:credentialManager.ClearCredentials();
+            $this.credentialProcessor.ClearCredentials();
         }
 
         elseif ($option -eq 5){
