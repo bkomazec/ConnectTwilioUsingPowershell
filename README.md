@@ -1,2 +1,2 @@
 # ConnectTwilioUsingPowershell
-Create a Powershell version of Twilio service SMS API
+This module should enable sending SMS messages via the Twilio service using Powershell
