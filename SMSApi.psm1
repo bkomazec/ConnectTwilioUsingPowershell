@@ -42,7 +42,7 @@ class SMSApi {
     }
 
     #Sending data to Twilio and sending SMS
-    [void] SendSMS ( $body) {
+    hidden[void] SendSMS ( $body) {
 
         # Pull in Twilio account info, previously set as environment variables
         $sid = $this.credentials.account_sid
