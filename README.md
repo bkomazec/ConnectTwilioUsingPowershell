@@ -32,4 +32,4 @@ After initialisation, you can use next functions:
 Testing:
 
 1. Import-Module ..\Modules\Pester\5.1.1\Pester.psm1
-2. Invoke-Pester .\TestJson.ps1
+2. Invoke-Pester .\TestJson.Tests.ps1
