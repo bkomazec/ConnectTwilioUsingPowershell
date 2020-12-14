@@ -28,3 +28,8 @@ After initialisation, you can use next functions:
 1. $twilio.SendSMS()
 2. $twilio.GetAllMessages()
 3. $twilio.DeleteMessage()
+
+Testing:
+
+1. Import-Module ..\Modules\Pester\5.1.1\Pester.psm1
+2. Invoke-Pester .\TestJson.ps1

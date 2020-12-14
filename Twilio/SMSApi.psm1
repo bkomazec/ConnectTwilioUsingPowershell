@@ -42,7 +42,7 @@ class SMSApi {
     }
 
     #Sending data to Twilio and sending SMS
-    hidden[void] SendSMS ( $body) {
+    hidden[void] SendSMS ([string] $body) {
 
         # Pull in Twilio account info, previously set as environment variables
         $sid = $this.credentials.account_sid
@@ -59,9 +59,9 @@ class SMSApi {
 
         # Make API request, selecting JSON properties from response
 
-        Invoke-WebRequest $url -Method Post -Credential $credential -Body $params -UseBasicParsing |
-        ConvertFrom-Json | Select sid, body                
-
+        $message = Invoke-WebRequest $url -Method Post -Credential $credential -Body $params -UseBasicParsing |
+        ConvertFrom-Json | Select sid, body
+        $message              
     }
 
     [void] GetMessages() {
@@ -76,8 +76,8 @@ class SMSApi {
         try{
             $p = $this.credentials.auth_token | ConvertTo-SecureString -asPlainText    -Force
             $credential = New-Object System.Management.Automation.PSCredential($this.credentials.account_sid, $p)
-            $messages = Invoke-WebRequest $url -Method Get -Credential $credential -UseBasicParsing |  ConvertFrom-Json
-            $messages
+            $messages = Invoke-WebRequest $url -Method Get -Credential $credential -UseBasicParsing |  ConvertFrom-Json 
+            Write-Host $messages
         }
 
         catch{
@@ -85,7 +85,7 @@ class SMSApi {
         }
     }
 
-    [void] DeleteMessage($messageId){
+    [void] DeleteMessage([string]$messageId){
         try {
             $sid=$this.credentials.account_sid
             $token = $this.credentials.auth_token
@@ -93,6 +93,7 @@ class SMSApi {
 
             $p = $token | ConvertTo-SecureString -asPlainText    -Force
             $credential = New-Object System.Management.Automation.PSCredential($sid, $p)
+
             try {
                 Invoke-WebRequest $url -Method Delete -Credential $credential -UseBasicParsing
                 Write-Host "Message successfully deleted!" -ForegroundColor Green
