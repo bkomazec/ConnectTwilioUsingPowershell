@@ -15,27 +15,24 @@ class CredentialProcessor {
         $this.credentials.user_number = ""
     }
 
-    [Credentials]InitFromFile([string]$fileName) {
+    [TestJsonResponse]InitFromFile([string]$fileName) {
         [bool]$validPath = $false
         $jsonFile = $null
     
         $validPath = Test-Path -Path $fileName
         if (-not ($validPath)) {
-            Write-Host "Path is not valid" -ForegroundColor Red
-            return $null
+            return [TestJsonResponse]::PathNotValid
         }
         
         try {    
             $jsonFile = Get-Content $fileName | Out-String | ConvertFrom-Json 
 
             if ([string]::IsNullOrEmpty($jsonFile)) {
-                Write-Host "File is empty" -ForegroundColor Red
-                return $null
+                return [TestJsonResponse]::Empty
             }
         }
         catch {
-            Write-Host "Provided text is not a valid JSON string" -ForegroundColor Red
-            return $null
+            return [TestJsonResponse]::WrongFormat
         }
 
         try {
@@ -43,13 +40,19 @@ class CredentialProcessor {
             $this.credentials.auth_token = $jsonFile.authToken
             $this.credentials.twilio_number = $jsonFile.twilioNumber
             $this.credentials.user_number = $jsonFile.userNumber
+
+            if (([string]::IsNullOrEmpty($this.credentials.account_sid)) `
+            -or ([string]::IsNullOrEmpty($this.credentials.auth_token)) `
+            -or ([string]::IsNullOrEmpty($this.credentials.twilio_number)) `
+            -or ([string]::IsNullOrEmpty($this.credentials.user_number))) {
+                return [TestJsonResponse]::WrongCredentials
+            }
         }
         catch {
-            Write-Host "Error loading file" -ForegroundColor Red
-            return $null
+            return [TestJsonResponse]::WrongCredentials
         }        
         
-        return $this.credentials
+        return [TestJsonResponse]::OK
     }
 
     [Credentials]InitFromUserInput(){
@@ -83,4 +86,14 @@ class CredentialProcessor {
     }
 
 }
+
+Enum TestJsonResponse
+
+    {
+        OK = 0
+        PathNotValid = 1
+        Empty = 2
+        WrongFormat = 3
+        WrongCredentials = 4
+    }
 

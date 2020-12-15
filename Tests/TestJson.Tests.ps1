@@ -17,7 +17,19 @@ BeforeAll {
 
 Describe "Test-JSON"{
     It "Valid Json" {
-        CheckJson | Should -Be Credentials
+        CheckJson .\Credentials.json | Should -Be OK
+    }  
+    It "Wrong path" {
+        CheckJson "aaaaaa" | Should -Be PathNotValid
+    }  
+    It "File empty" {
+        CheckJson .\CredentialsEmpty.json | Should -Be Empty
+    }  
+    It "Wrong JSON string format" {
+        CheckJson .\CredentialsWrongFormat.json | Should -Be WrongFormat
+    }  
+    It "Some credentials missing" {
+        CheckJson .\CredentialsMissingProperty.json | Should -Be WrongCredentials
     }  
 }
 

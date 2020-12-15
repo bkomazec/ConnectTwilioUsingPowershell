@@ -24,10 +24,10 @@ class Twilio {
     hidden[void]InitializeApi(){
         if($this.credentialManager.credentials_set){
             $this.smsApi = [SMSApi]::new($this.credentialManager.credentials)
-            Write-Host "Credentials successfully set" -ForegroundColor Green
+            Write-Host "Api successfully set" -ForegroundColor Green
         }
         else{
-            Write-Host "Error getting credentials"
+            Write-Host "Error setting Api" -ForegroundColor Red
         }
     }
 
