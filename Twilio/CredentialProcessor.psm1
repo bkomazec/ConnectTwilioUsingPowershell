@@ -15,20 +15,41 @@ class CredentialProcessor {
         $this.credentials.user_number = ""
     }
 
-    [Credentials]InitFromFile($fileName){
+    [Credentials]InitFromFile([string]$fileName) {
+        [bool]$validPath = $false
+        $jsonFile = $null
+    
+        $validPath = Test-Path -Path $fileName
+        if (-not ($validPath)) {
+            Write-Host "Path is not valid" -ForegroundColor Red
+            return $null
+        }
+        
+        try {    
+            $jsonFile = Get-Content $fileName | Out-String | ConvertFrom-Json 
+
+            if ([string]::IsNullOrEmpty($jsonFile)) {
+                Write-Host "File is empty" -ForegroundColor Red
+                return $null
+            }
+        }
+        catch {
+            Write-Host "Provided text is not a valid JSON string" -ForegroundColor Red
+            return $null
+        }
+
         try {
-            $jsonFile = Get-Content $fileName | Out-String | ConvertFrom-Json
-            $jsonFile
             $this.credentials.account_sid = $jsonFile.accountSID
             $this.credentials.auth_token = $jsonFile.authToken
             $this.credentials.twilio_number = $jsonFile.twilioNumber
             $this.credentials.user_number = $jsonFile.userNumber
-            return $this.credentials
         }
         catch {
             Write-Host "Error loading file" -ForegroundColor Red
             return $null
-        }     
+        }        
+        
+        return $this.credentials
     }
 
     [Credentials]InitFromUserInput(){
